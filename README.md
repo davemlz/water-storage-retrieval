@@ -74,4 +74,4 @@ GradientBoostingRegressor(n_estimators = 500,
 
 ## Phase III: Water Storage Retrieval
 
-Total water storage volume is retrieved using the parameter-surface estimation method in `/phase-III/01-water-storage-retrieval.ipynb`. Bathymetry predictions of the three regression models were tested. Ensembles methods showed a better performance for water storage retrieval ($RMSE<4 hm^3$).
+Total water storage volume is retrieved using the parameter-surface estimation method in `/phase-III/01-water-storage-retrieval.ipynb`. Bathymetry predictions of the three regression models were tested. Ensembles methods showed a better performance for water storage retrieval (RMSE < 4 hm^3).
