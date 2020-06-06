@@ -29,7 +29,7 @@ automaticWaterMask(image, # Preprocessed Sentinel-2 image
 
 Water depth is estimated through 3 different regression models: Linear Regression, Random Forest and Gradient Boosting.
 
-First, reservoirs shorelines are retrieved and added to the original bathymetric data in `/phase-II/01-shoreline-to-bathymetry.ipynb`. The gathered data is interpolated using IDW in `/phase-II/02-IDW-interpolation.Rmd`. The input features for the regression models are calculated in `/phase-II/03-input-features.ipynb`. Regression models were fitted an tested in `/phase-II/04-bathymetry-estimation.ipynb`. Statistical analysis of cross-validation results from the previous step were performed in `/phase-II/05-statistical-analysis.Rmd`.
+First, reservoirs shorelines are retrieved and added to the original bathymetric data in `/phase-II/01-shoreline-to-bathymetry.ipynb`. The gathered data is interpolated using IDW in `/phase-II/02-IDW-interpolation.Rmd`. The input features for the regression models are calculated in `/phase-II/03-input-features.ipynb`. Regression models were fitted an tested in `/phase-II/04-bathymetry-estimation.ipynb`. Predictions were also made in this notebook. Statistical analysis of cross-validation results from the previous step were performed in `/phase-II/05-statistical-analysis.Rmd`.
 
 ### Input Features
 
@@ -50,7 +50,7 @@ depthCumulativeCost(waterMask, # Water mask (water mask derived from automaticWa
 
 ### Ensembles
 
-Ensembles methods permormed better than Linear Regression in bathymetry estimation. Random Forest and Gradient Boosting can be used. Best hyperparameters are showed below.
+Ensembles methods performed better than Linear Regression in bathymetry estimation. Random Forest and Gradient Boosting can be used. Best hyperparameters are showed below.
 
 1. Random Forest
 
@@ -74,4 +74,4 @@ GradientBoostingRegressor(n_estimators = 500,
 
 ## Phase III: Water Storage Retrieval
 
-Total water storage volume is retrieved using the parameter-surface estimation method.
+Total water storage volume is retrieved using the parameter-surface estimation method in `/phase-III/01-water-storage-retrieval.ipynb`. Bathymetry predictions of the three regression models were tested. Ensembles methods showed a better performance for water storage retrieval ($RMSE<4 hm^3$).
