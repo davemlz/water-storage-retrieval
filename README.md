@@ -8,7 +8,9 @@ The pipeline is divided into three phases:
 
 Water is automatically classificated in an object-based approach using Simple Non-Iterative Clustering (SNIC) and k-means.
 
-First, water is automatically classified in `phase-I/01-automatic-water-classification.ipynb`. The Sentinel-2 image is preprocessed (median filtering is applied) and segmented using SNIC algorithm in Google Earth Engine. As inputs for the segmentation, the 10 m bands + the NDWI were used.
+First, water is automatically classified in `/phase-I/01-automatic-water-classification.ipynb`. The Sentinel-2 image is preprocessed (median filtering is applied) and segmented using SNIC algorithm in Google Earth Engine. As inputs for the segmentation, the 10 m bands + the NDWI were used. Later, the segmented image is clustered using k-means. The cluster with the higher NDWI centroid is selected as the water cluster. The remaining clusters are labeled as non-water clusters.
+
+Multiple hyperparameters were tested: Seed spacing and grid type for the SNIC algorithm, and the number of clusters and training size for the k-means algorithm. The results for each combination of hyperparameters were compared against actual water masks and statistical analysis were performef in `/phase-I/02-statistical-analysis.Rmd`.
 
 ## Phase II: Satellite Derieved Bathymetry
 
