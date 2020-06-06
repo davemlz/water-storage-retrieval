@@ -1,0 +1,145 @@
+---
+title: "Phase II: IDW Interpolation"
+output: html_notebook
+---
+
+Import required packages.
+
+```{r}
+require(raster)
+require(gstat)
+require(caret)
+```
+
+The following function converts a data frame into a WGS84 projected shapefile.
+
+```{r}
+toSHP_transform = function(table,to_crs){
+  
+  if(ncol(table) == 2){names(table) = c("x","y")}
+  if(ncol(table) == 3){names(table) = c("x","y","z")}
+  coordinates(table) = ~ x + y
+  proj4string(table) = CRS("+proj=longlat +datum=WGS84")
+  shp = spTransform(table,to_crs)
+  
+  return(shp)
+  
+}
+```
+
+This function takes the shorleine-bathymetry data, does an IDW interpolation, runs a k-fold cross-validation, predict the data and save it for predicted water masks WMp and actual water masks WMt. Results are saved in shapefile, raster and text formats. The valu of p is 3.5 for the IDW interpolation.
+
+```{r}
+interpolate_idw = function(bathymetry,
+                           wmt,
+                           wmp,
+                           coords_wmt,
+                           coords_wmp,
+                           path = "../data/phase-II/IDW/",
+                           name = "Reservoir",
+                           k = 10,
+                           p = 3.5){
+  
+  shp_bathymetry = toSHP_transform(bathymetry,crs(wmp))
+  shp_wmt = toSHP_transform(coords_wmt,crs(wmp))
+  shp_wmp = toSHP_transform(coords_wmp,crs(wmp))
+  
+  flds = createFolds(shp_bathymetry$z,k = k,list = FALSE)
+  
+  error = rep(NA,k)
+  
+  for(i in 1:k){
+    
+    predicted = idw(z ~ 1,shp_bathymetry[!(flds == i),],shp_bathymetry[(flds == i),],idp = p)$var1.pred
+    error[i] = RMSE(predicted,shp_bathymetry$z[(flds == i)])
+    
+  }
+  
+  interpolated_wmp = idw(z ~ 1,shp_bathymetry,shp_wmp,idp = p)
+  interpolated_wmt = idw(z ~ 1,shp_bathymetry,shp_wmt,idp = p)
+  
+  r_wmp = rasterize(interpolated_wmp,wmp,"var1.pred")
+  r_wmt = rasterize(interpolated_wmt,wmt,"var1.pred")
+  
+  shapefile(shp_bathymetry,paste0(path,"Shapefiles/",name,"_",p,"_bat.shp"))
+  
+  writeRaster(r_wmp,paste0(path,"Imagery/",name,"_",p,"_wmp.tif"))
+  writeRaster(r_wmt,paste0(path,"Imagery/",name,"_",p,"_wmt.tif"))
+  
+  df_wmp = spTransform(interpolated_wmp,CRS("+proj=longlat +datum=WGS84"))
+  df_wmt = spTransform(interpolated_wmt,CRS("+proj=longlat +datum=WGS84"))
+  
+  write.table(df_wmp,paste0(path,name,"_",p,"_wmp.csv"),row.names = FALSE)
+  write.table(df_wmt,paste0(path,name,"_",p,"_wmt.csv"),row.names = FALSE)
+  
+  return(error)
+  
+}
+```
+
+## IDW for the Study Cases
+
+### Alto-Lindoso
+
+```{r}
+wmp = raster("../data/phase-I/imagery/WMp_Alto_Lindoso.tif")
+wmt = raster("../data/phase-I/imagery/WMt_Alto_Lindoso.tif")
+
+depth = read.table("../data/phase-II/bathymetry-shoreline/Bat_wl_Alto_Lindoso.csv",sep = ",")
+
+toInterpolate_wmp = read.table("../data/phase-II/coordinates-water-mask/Coords_wmp_Alto_Lindoso.csv",sep = ",")
+toInterpolate_wmt = read.table("../data/phase-II/coordinates-water-mask/Coords_wmt_Alto_Lindoso.csv",sep = ",")
+
+error_idw = interpolate_idw(depth,wmt,wmp,toInterpolate_wmt,toInterpolate_wmp,name = "Alto_Lindoso")
+mean(error_idw)
+sd(error_idw)
+```
+
+### Bubal
+
+```{r}
+wmp = raster("../data/phase-I/imagery/WMp_Bubal.tif")
+wmt = raster("../data/phase-I/imagery/WMt_Bubal.tif")
+
+depth = read.table("../data/phase-II/bathymetry-shoreline/Bat_wl_Bubal.csv",sep = ",")
+
+toInterpolate_wmp = read.table("../data/phase-II/coordinates-water-mask/Coords_wmp_Bubal.csv",sep = ",")
+toInterpolate_wmt = read.table("../data/phase-II/coordinates-water-mask/Coords_wmt_Bubal.csv",sep = ",")
+
+error_idw = interpolate_idw(depth,wmt,wmp,toInterpolate_wmt,toInterpolate_wmp,name = "Bubal")
+mean(error_idw)
+sd(error_idw)
+```
+
+### Canelles
+
+```{r}
+wmp = raster("../data/phase-I/imagery/WMp_Canelles.tif")
+wmt = raster("../data/phase-I/imagery/WMt_Canelles.tif")
+
+depth = read.table("../data/phase-II/bathymetry-shoreline/Bat_wl_Canelles.csv",sep = ",")
+
+toInterpolate_wmp = read.table("../data/phase-II/coordinates-water-mask/Coords_wmp_Canelles.csv",sep = ",")
+toInterpolate_wmt = read.table("../data/phase-II/coordinates-water-mask/Coords_wmt_Canelles.csv",sep = ",")
+
+error_idw = interpolate_idw(depth,wmt,wmp,toInterpolate_wmt,toInterpolate_wmp,name = "Canelles")
+mean(error_idw)
+sd(error_idw)
+```
+
+### Grado
+
+```{r}
+wmp = raster("../data/phase-I/imagery/WMp_Grado.tif")
+wmt = raster("../data/phase-I/imagery/WMt_Grado.tif")
+
+depth = read.table("../data/phase-II/bathymetry-shoreline/Bat_wl_Grado.csv",sep = ",")
+
+toInterpolate_wmp = read.table("../data/phase-II/coordinates-water-mask/Coords_wmp_Grado.csv",sep = ",")
+toInterpolate_wmt = read.table("../data/phase-II/coordinates-water-mask/Coords_wmt_Grado.csv",sep = ",")
+
+error_idw = interpolate_idw(depth,wmt,wmp,toInterpolate_wmt,toInterpolate_wmp,name = "Grado")
+mean(error_idw)
+sd(error_idw)
+```
+

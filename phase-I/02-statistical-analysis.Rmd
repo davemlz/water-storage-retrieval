@@ -1,0 +1,118 @@
+---
+title: "Phase I: Automatic Water Classification - Statistical Analysis"
+output: html_notebook
+---
+
+Import required packages.
+
+```{r}
+require(agricolae)
+```
+
+Read the results from the confusion images and join them in a single data frame.
+
+```{r}
+cm_a = read.csv("../data/phase-I/cm_alto_lindoso.csv")
+cm_b = read.csv("../data/phase-I/cm_bubal.csv")
+cm_c = read.csv("../data/phase-I/cm_canelles.csv")
+cm_g = read.csv("../data/phase-I/cm_grado.csv")
+
+cm_a$Reservoir = rep("Alto-Lindoso",nrow(cm_a))
+cm_b$Reservoir = rep("Bubal",nrow(cm_b))
+cm_c$Reservoir = rep("Canelles",nrow(cm_c))
+cm_g$Reservoir = rep("Grado",nrow(cm_g))
+
+cm = rbind(cm_a,cm_b,cm_c,cm_g)
+```
+
+Compute the MCC.
+
+```{r}
+cm$TP = as.double(cm$TP)
+cm$FP = as.double(cm$FP)
+cm$FN = as.double(cm$FN)
+cm$TN = as.double(cm$TN)
+
+cm$MCC = ((cm$TP*cm$TN)-(cm$FP*cm$FN))/sqrt((cm$TP+cm$FP)*(cm$TP+cm$FN)*(cm$TN+cm$FP)*(cm$TN+cm$FN))
+```
+
+Convert Grid Type (G), Seed Spacing (S), number of clusters (K) and training size (T) to factors for analysis.
+
+```{r}
+cm$GridType = as.factor(cm$GridType)
+cm$k = as.factor(cm$k)
+cm$SeedSpacing = as.factor(cm$SeedSpacing)
+cm$TrainingPrSuperpixels = as.factor(cm$TrainingPrSuperpixels)
+cm$Reservoir = as.factor(cm$Reservoir)
+```
+
+## MCC Analysis
+
+First, the ANOVA is performed.
+
+```{r}
+fit = aov(MCC ~ GridType*k*SeedSpacing*TrainingPrSuperpixels,cm)
+summary(fit)
+```
+
+Since just G, K and S were significant, LSD was done on these factors.
+
+```{r}
+LSD_G = LSD.test(fit,c("GridType"))
+LSD_K = LSD.test(fit,c("k"))
+LSD_S = LSD.test(fit,c("SeedSpacing"))
+
+plot(LSD_G,variation = "SE",main = "Grid Type")
+plot(LSD_K,variation = "SE",main = "Number of Clusters")
+plot(LSD_S,variation = "SE",main = "Seed Spacing")
+```
+
+## Sensitivity Analysis
+
+Sensitivity did not show significant differences. Therefore, LSD was not performed.
+
+```{r}
+fit = aov(Sensitivity ~ GridType*k*SeedSpacing*TrainingPrSuperpixels,cm)
+summary(fit)
+```
+
+## Precision Analysis
+
+First, the ANOVA is performed.
+
+```{r}
+fit = aov(Precision ~ GridType*k*SeedSpacing*TrainingPrSuperpixels,cm)
+summary(fit)
+```
+
+Since only K and S were significant, LSD was done on these factors.
+
+```{r}
+LSD_K = LSD.test(fit,c("k"))
+LSD_S = LSD.test(fit,c("SeedSpacing"))
+
+plot(LSD_K,variation = "SE",main = "Number of Clusters")
+plot(LSD_S,variation = "SE",main = "Seed Spacing")
+```
+
+## Time Analysis
+
+First, the ANOVA is performed.
+
+```{r}
+fit = aov(Time ~ GridType*k*SeedSpacing*TrainingPrSuperpixels,cm)
+summary(fit)
+```
+
+Since only K, S and T were significant, LSD was done on these factors.
+
+```{r}
+LSD_K = LSD.test(fit,c("k"))
+LSD_S = LSD.test(fit,c("SeedSpacing"))
+LSD_T = LSD.test(fit,c("TrainingPrSuperpixels"))
+
+plot(LSD_K,variation = "SE",main = "Number of Clusters")
+plot(LSD_S,variation = "SE",main = "Seed Spacing")
+plot(LSD_T,variation = "SE",main = "Training Size")
+```
+

@@ -1,0 +1,150 @@
+---
+title: "Phase II: Satellite Derived Bathymetry - Statistical Analysis"
+output: html_notebook
+---
+
+Import required packages.
+
+```{r}
+require(agricolae)
+require(tidyr)
+```
+
+## Random Forest (RF)
+
+Read the results from the grid search conducted in sklearn.
+
+```{r}
+cvrf.broader = read.csv("../data/phase-II/results/RF/gridsearchcv-results-rf-broader.csv")
+cvrf.narrower = read.csv("../data/phase-II/results/RF/gridsearchcv-results-rf-narrower.csv")
+```
+
+### Broader Tuning
+
+First, we organize the cross-validation results.
+
+```{r}
+cvrf.broader = cvrf.broader %>% gather("split_test",
+                                       "RMSE",
+                                       split0_test_score,
+                                       split1_test_score,
+                                       split2_test_score)
+
+cvrf.broader = cvrf.broader[,c(5,6,10:11)]
+names(cvrf.broader)[1:2] = c("Maximum Input Features","Estimators")
+cvrf.broader$RMSE = cvrf.broader$RMSE*-1
+```
+
+Convert factors.
+
+```{r}
+cvrf.broader$`Maximum Input Features` = as.factor(cvrf.broader$`Maximum Input Features`)
+cvrf.broader$Estimators = as.factor(cvrf.broader$Estimators)
+```
+
+The ANOVA is fitted.
+
+```{r}
+fit = aov(RMSE ~ `Maximum Input Features`*Estimators,cvrf.broader)
+summary(fit)
+```
+
+Check for LSD significances.
+
+```{r}
+LSD_M = LSD.test(fit,c("Maximum Input Features"))
+LSD_E = LSD.test(fit,c("Estimators"))
+
+plot(LSD_M,variation = "SE",main = "Maximum Input Features")
+plot(LSD_E,variation = "SE",main = "Estimators")
+```
+
+In this case, the RMSE using a maximum input features $\sqrt{n}$ is significantly lower than using all the input features $n$. There are no differences in estimators.
+
+### Narrower Tuning
+
+Organize the cross-validation results for the narrower tuning.
+
+```{r}
+cvrf.narrower = cvrf.narrower %>% gather("split_test",
+                                         "RMSE",
+                                         split0_test_score,
+                                         split1_test_score,
+                                         split2_test_score,
+                                         split3_test_score,
+                                         split4_test_score)
+
+cvrf.narrower = cvrf.narrower[,c(5,9:10)]
+names(cvrf.narrower)[1] = "Estimators"
+cvrf.narrower$RMSE = cvrf.narrower$RMSE*-1
+```
+
+Convert the factor.
+
+```{r}
+cvrf.narrower$Estimators = as.factor(cvrf.narrower$Estimators)
+```
+
+Fit the ANOVA.
+
+```{r}
+fit = aov(RMSE ~ Estimators,cvrf.narrower)
+summary(fit)
+```
+
+Check for differences.
+
+```{r}
+LSD_E = LSD.test(fit,c("Estimators"))
+
+plot(LSD_E,variation = "SE",main = "Estimators")
+```
+
+Sinificant differences were not found. The best number of estimators was selected as the one with the least time and a slightly better RMSE (mean and std): 20 estimators.
+
+## Gradient Boosting (GB)
+
+Read the cross-validation results.
+
+```{r}
+gscv.gb = read.csv("../data/phase-II/results/GB/gridsearchcv-results-gb.csv")
+```
+
+Organize the results.
+
+```{r}
+gscv.gb = gscv.gb %>% gather("split_test",
+                             "RMSE",
+                             split0_test_score,
+                             split1_test_score,
+                             split2_test_score,
+                             split3_test_score,
+                             split4_test_score)
+
+gscv.gb = gscv.gb[,c(5,9,10)]
+names(gscv.gb)[1] = "Maximum Depth"
+gscv.gb$RMSE = gscv.gb$RMSE*-1
+```
+
+Covert to factor.
+
+```{r}
+gscv.gb$`Maximum Depth` = as.factor(gscv.gb$`Maximum Depth`)
+```
+
+Fit the ANOVA. There ar no significant differences.
+
+```{r}
+fit = aov(RMSE ~ `Maximum Depth`,gscv.gb)
+summary(fit)
+```
+
+Check the LSD test.
+
+```{r}
+LSD_D = LSD.test(fit,c("Maximum Depth"))
+
+plot(LSD_D,variation = "SE",main = "Maximum Depth")
+```
+
+No significant differences were found. The maximum depth of 20 levels was selected as the value with the least consumed time.
