@@ -25,9 +25,26 @@ automaticWaterMask(image, # Preprocessed Sentinel-2 image
                    pTrain) # Training size as a fraction of the number of superpixels. 2 is recommended.
 ```
 
-## Phase II: Satellite Derieved Bathymetry
+## Phase II: Satellite Derived Bathymetry
 
 Water depth is estimated through 3 different regression models: Linear Regression, Random Forest and Gradient Boosting.
+
+First, reservoirs shorelines are retrieved and added to the original bathymetric data in `/phase-II/01-shoreline-to-bathymetry.ipynb`. The gathered data is interpolated using IDW in `/phase-II/02-IDW-interpolation.Rmd`. The input features for the regression models are calculated in `/phase-II/03-input-features.ipynb`. Regression models were fitted an tested in `/phase-II/04-bathymetry-estimation.ipynb`. Statistical analysis of cross-validation results from the previous step were performed in `/phase-II/05-statistical-analysis.Rmd`.
+
+The input features for the regression models were the 10 m bands + Lyzenga Transforms + Ratio Transforms + Cumulative Cost Map.
+
+Lyzenga Transform can be computed as the log transform of an specific band: `log(x - xs)`, where `x` is the reflectance of the band x and `xs` is the average reflectance of deep waters in band x. For lakes and reservoirs, `xs` is set to zero.
+
+Ratio Transform is calculated as the ratio of two log transformed bands: `log(n*x)/log(n*y)`, where `x` is the reflectance of the band x, `y` is the reflectance of the band y and `n` is an user defined parameter. Here, `n` was set to 1.
+
+The most important input feature for bathymetry estimation is the cumulative cost. This feature represents the euclidean distance from each pixel inside a water mask to the closest vertex in the shoreline of the water mask. Cumulative cost can be computed using the `depthCumulativeCost` function in `/phase-II/03-input-features.ipynb`.
+
+```python
+depthCumulativeCost(waterMask, # Water mask (water mask derived from automaticWaterMask can be used here).
+                    ROI, # Region of interest.
+                    scale, # Spatial resolution to work with. 10 for Sentinel-2.
+                    maxDistance) # Max distance to look for a closest point. 1000 is recommended.
+```
 
 ## Phase III: Water Storage Retrieval
 
