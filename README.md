@@ -31,6 +31,8 @@ Water depth is estimated through 3 different regression models: Linear Regressio
 
 First, reservoirs shorelines are retrieved and added to the original bathymetric data in `/phase-II/01-shoreline-to-bathymetry.ipynb`. The gathered data is interpolated using IDW in `/phase-II/02-IDW-interpolation.Rmd`. The input features for the regression models are calculated in `/phase-II/03-input-features.ipynb`. Regression models were fitted an tested in `/phase-II/04-bathymetry-estimation.ipynb`. Statistical analysis of cross-validation results from the previous step were performed in `/phase-II/05-statistical-analysis.Rmd`.
 
+### Input Features
+
 The input features for the regression models were the 10 m bands + Lyzenga Transforms + Ratio Transforms + Cumulative Cost Map.
 
 Lyzenga Transform can be computed as the log transform of an specific band: `log(x - xs)`, where `x` is the reflectance of the band x and `xs` is the average reflectance of deep waters in band x. For lakes and reservoirs, `xs` is set to zero.
@@ -44,6 +46,23 @@ depthCumulativeCost(waterMask, # Water mask (water mask derived from automaticWa
                     ROI, # Region of interest.
                     scale, # Spatial resolution to work with. 10 for Sentinel-2.
                     maxDistance) # Max distance to look for a closest point. 1000 is recommended.
+```
+
+### Ensembles
+
+Ensembles methods permormed better than Linear Regression in bathymetry estimation. Random Forest and Gradient Boosting can be used. Best hyperparameters are showed below.
+
+1. Random Forest
+
+```python
+from sklearn.ensemble import RandomForestRegressor
+RandomForestRegressor(n_estimators = 20,max_features = "sqrt")
+```
+2. Gradient Boosting
+
+```python
+from sklearn.ensemble import GradientBoostingRegressor
+GradientBoostingRegressor(n_estimators = 20,max_features = "sqrt",validation_fraction = 0.05,n_iter_no_change = 10,tol = 0.01)
 ```
 
 ## Phase III: Water Storage Retrieval
