@@ -56,13 +56,20 @@ Ensembles methods permormed better than Linear Regression in bathymetry estimati
 
 ```python
 from sklearn.ensemble import RandomForestRegressor
-RandomForestRegressor(n_estimators = 20,max_features = "sqrt")
+RandomForestRegressor(n_estimators = 20,
+                      max_features = "sqrt")
 ```
 2. Gradient Boosting
 
 ```python
 from sklearn.ensemble import GradientBoostingRegressor
-GradientBoostingRegressor(n_estimators = 20,max_features = "sqrt",validation_fraction = 0.05,n_iter_no_change = 10,tol = 0.01)
+GradientBoostingRegressor(n_estimators = 500,
+                          learning_rate = 0.1,
+                          max_depth = 20,
+                          max_features = "sqrt",
+                          validation_fraction = 0.05, # Can be changed depending on your training size.
+                          n_iter_no_change = 10,
+                          tol = 0.01)
 ```
 
 ## Phase III: Water Storage Retrieval
