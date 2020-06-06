@@ -12,7 +12,7 @@ First, water is automatically classified in `/phase-I/01-automatic-water-classif
 
 Multiple hyperparameters were tested: Seed spacing and grid type for the SNIC algorithm, and the number of clusters and training size for the k-means algorithm. The results for each combination of hyperparameters were compared against actual water masks and statistical analysis were performef in `/phase-I/02-statistical-analysis.Rmd`.
 
-For an automatic water mask, use the `function` function in `/phase-I/01-automatic-water-classification.ipynb`.
+For an automatic water mask, use the `automaticWaterMask` function in `/phase-I/01-automatic-water-classification.ipynb`.
 
 ```python
 automaticWaterMask(image, # Preprocessed Sentinel-2 image
