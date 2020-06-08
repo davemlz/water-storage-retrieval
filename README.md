@@ -50,7 +50,7 @@ depthCumulativeCost(waterMask, # Water mask (water mask derived from automaticWa
 
 ### Ensembles
 
-Ensembles methods performed better than Linear Regression in bathymetry estimation. Random Forest and Gradient Boosting can be used. Best hyperparameters are showed below.
+Ensembles methods performed better than Linear Regression in bathymetry estimation. Random Forest and Gradient Boosting can be used. Best hyperparameters are showed below. Remaining hyperparameters are set to the default values in `sklearn`.
 
 1. Random Forest
 
@@ -63,8 +63,7 @@ RandomForestRegressor(n_estimators = 20,
 
 ```python
 from sklearn.ensemble import GradientBoostingRegressor
-GradientBoostingRegressor(n_estimators = 500,
-                          learning_rate = 0.1,
+GradientBoostingRegressor(n_estimators = 500,                          
                           max_depth = 20,
                           max_features = "sqrt",
                           validation_fraction = 0.05, # Can be changed depending on your training size.
